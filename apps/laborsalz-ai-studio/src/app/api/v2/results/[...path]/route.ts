@@ -24,12 +24,9 @@ export async function GET(
   context: { params: Promise<{ path: string[] }> },
 ) {
   const { path: parts } = await context.params;
-  if (parts[0] !== "results") {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
-  }
 
   try {
-    const fullPath = storagePath(...parts);
+    const fullPath = storagePath("results", ...parts);
     const info = await stat(fullPath);
     if (!info.isFile()) return NextResponse.json({ error: "not found" }, { status: 404 });
 
