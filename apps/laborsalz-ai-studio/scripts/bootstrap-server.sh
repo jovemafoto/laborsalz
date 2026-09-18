@@ -30,6 +30,7 @@ mkdir -p \
   "$PROJECT_ROOT/90. Inbox" \
   "$PROJECT_ROOT/99. Archive" \
   "$RUNTIME_DIR/uploads" \
+  "$RUNTIME_DIR/results" \
   "$RUNTIME_DIR/history" \
   "$RUNTIME_DIR/events" \
   "$LOG_DIR"
@@ -75,8 +76,8 @@ cd "$APP_DIR"
 
 if [[ ! -f .env ]]; then
   echo
-  read -r -p "Generation API base URL (HF_API_BASE_URL): " HF_API_BASE_URL
-  read -r -s -p "Generation platform key (id:secret): " LABORSALZ_AI_API_KEY
+  read -r -p "Generation API base URL (HF_API_BASE_URL): " HF_API_BASE_URL </dev/tty
+  read -r -s -p "Generation platform key (id:secret): " LABORSALZ_AI_API_KEY </dev/tty
   echo
   if [[ -z "$HF_API_BASE_URL" || -z "$LABORSALZ_AI_API_KEY" ]]; then
     echo "ERROR: API URL and key are required to start generation."
@@ -94,7 +95,7 @@ LABORSALZ_AI_API_KEY=$LABORSALZ_AI_API_KEY
 LABORSALZ_STORAGE_ROOT=/data
 LABORSALZ_AI_STORAGE_HOST="$RUNTIME_DIR"
 LABORSALZ_AI_PORT=$PORT
-LABORSALZ_UPLOAD_MAX_MB=150
+LABORSALZ_UPLOAD_MAX_MB=95
 LABORSALZ_HISTORY_LIMIT=1000
 LABORSALZ_MEDIA_SIGNING_SECRET=$MEDIA_SECRET
 LABORSALZ_INTERNAL_API_TOKEN=$INTERNAL_TOKEN
