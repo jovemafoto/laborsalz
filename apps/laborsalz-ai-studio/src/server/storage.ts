@@ -19,7 +19,7 @@ export function storagePath(...segments: string[]): string {
 
 export async function ensureStorage(): Promise<void> {
   await Promise.all(
-    ["uploads", "history", "events"].map((directory) =>
+    ["uploads", "results", "history", "events"].map((directory) =>
       mkdir(storagePath(directory), { recursive: true }),
     ),
   );
