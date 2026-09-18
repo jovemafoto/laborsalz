@@ -36,3 +36,7 @@ See `docs/API_V2.md`.
 Read `UPSTREAM.md` before merging or releasing this branch. The upstream
 repository did not declare an explicit software license when this integration
 work began.
+
+## Validation
+
+Pull requests run the GitHub Actions `AI Studio CI` build. The server bootstrap also performs a full Docker/Next.js build before replacing the running container.
