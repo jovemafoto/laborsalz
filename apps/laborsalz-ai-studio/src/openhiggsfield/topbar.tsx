@@ -18,12 +18,14 @@ export function Topbar({
   busy,
   keyConfigured,
   onKeys,
+  managedKey = false,
 }: {
   view: GalleryView;
   onView: (next: GalleryView) => void;
   busy: boolean;
   keyConfigured: boolean;
   onKeys: () => void;
+  managedKey?: boolean;
 }) {
   const tabsRef = useRef<HTMLDivElement>(null);
   const [thumb, setThumb] = useState<{ x: number; w: number } | null>(null);
@@ -72,7 +74,7 @@ export function Topbar({
 
   return (
     <div className="ohf-topbar">
-      <h1 className="ohf-sr">OpenHiggsfield AI — Open source AI studio</h1>
+      <h1 className="ohf-sr">LaborSalz AI Studio — Internal image and video generation studio</h1>
 
       <div className="ohf-bar ohf-enter-1">
         <div
@@ -130,11 +132,16 @@ export function Topbar({
           data-busy={busy}
           data-ready={keyConfigured}
           onClick={onKeys}
-          aria-label={keyConfigured ? "Edit platform key" : "Add platform key"}
-          title={keyConfigured ? "Edit platform key" : "Add platform key"}
+          disabled={managedKey}
+          aria-label={
+            managedKey ? "Server-managed platform key" : keyConfigured ? "Edit platform key" : "Add platform key"
+          }
+          title={
+            managedKey ? "Server-managed platform key" : keyConfigured ? "Edit platform key" : "Add platform key"
+          }
         >
           <KeyIcon />
-          <span className="ohf-key-text">{keyConfigured ? "Your key" : "Add key"}</span>
+          <span className="ohf-key-text">{managedKey ? "Server key" : keyConfigured ? "Your key" : "Add key"}</span>
           <span className="ohf-lamp" />
         </button>
       </div>
