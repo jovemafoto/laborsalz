@@ -1,5 +1,5 @@
 import { createWriteStream } from "node:fs";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -53,6 +53,19 @@ async function archiveRemoteAsset(
 ): Promise<string> {
   if (sourceUrl.startsWith(`${SITE_URL}/api/v2/results/`)) return sourceUrl;
 
+  const numberPrefix = `${String(index + 1).padStart(2, "0")}.`;
+  const resultDirectory = storagePath("results", requestId);
+  try {
+    const existing = (await readdir(resultDirectory)).find((name) =>
+      name.startsWith(numberPrefix),
+    );
+    if (existing) {
+      return resultUrl(path.posix.join("results", requestId, existing));
+    }
+  } catch {
+    // First archive for this request; the directory will be created below.
+  }
+
   try {
     const response = await fetch(sourceUrl, {
       signal: AbortSignal.timeout(120_000),
@@ -78,12 +91,7 @@ async function archiveRemoteAsset(
       localPath: relative,
     });
 
-    const encoded = relative
-      .split("/")
-      .slice(1)
-      .map((segment) => encodeURIComponent(segment))
-      .join("/");
-    return `${SITE_URL}/api/v2/results/${encoded}`;
+    return resultUrl(relative);
   } catch (caught) {
     await writeStudioEvent("media.archive_failed", {
       requestId,
@@ -92,6 +100,15 @@ async function archiveRemoteAsset(
     });
     return sourceUrl;
   }
+}
+
+function resultUrl(relative: string): string {
+  const encoded = relative
+    .split("/")
+    .slice(1)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${SITE_URL}/api/v2/results/${encoded}`;
 }
 
 function extensionFromUrl(sourceUrl: string, kind: "image" | "video"): string {
