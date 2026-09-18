@@ -8,6 +8,7 @@ import type { ModelEntry, Surface } from "@/generation/catalog";
 import { MAX_BATCH, useActive } from "@/generation/stores/active";
 import { useImagePrompt, useVideoPrompt } from "@/generation/stores/prompt";
 import { useSettings } from "@/generation/stores/settings";
+import { STUDIO_PRESETS } from "@/presets";
 
 import { swatchFor } from "./artwork";
 import { AssetPicker } from "./asset-picker";
@@ -104,6 +105,7 @@ export function Composer({
   const counts = native ? native.counts : STUDIO_COUNTS;
   const batchValue = native ? Number(values[native.key]) || counts[0]! : batch;
   const settingKeys = Object.keys(model.settings).filter((key) => key !== native?.key);
+  const presets = STUDIO_PRESETS.filter((preset) => preset.surface === surface);
 
   function setBatchValue(next: number) {
     if (!native) {
@@ -329,6 +331,29 @@ export function Composer({
 
             <div className="ohf-composer-row">
               <div className="ohf-controls">
+                <select
+                  className="ohf-ctl"
+                  value=""
+                  aria-label="Apply LaborSalz preset"
+                  title="Apply preset"
+                  style={{ maxWidth: 190 }}
+                  onChange={(event) => {
+                    const preset = presets.find((entry) => entry.id === event.target.value);
+                    if (!preset) return;
+                    prompt.setText(preset.prompt);
+                    onError(null);
+                    setOverlay(null);
+                    window.requestAnimationFrame(() => promptRef.current?.focus());
+                  }}
+                >
+                  <option value="">Preset</option>
+                  {presets.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.group} — {preset.name}
+                    </option>
+                  ))}
+                </select>
+
                 <button
                   type="button"
                   className="ohf-ctl ohf-ctl--model ohf-tip"
