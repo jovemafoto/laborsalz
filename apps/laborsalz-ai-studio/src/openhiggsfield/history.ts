@@ -9,40 +9,31 @@ export interface RunRecord {
   modelId: string;
   modelLabel: string;
   prompt: string;
-  /** CSS aspect-ratio value, e.g. "16 / 9" */
   ratio: string;
   meta: string;
   badge?: string;
   kind: "image" | "video";
   urls: string[];
   status: RunStatus;
-  /** Platform request this row is waiting on. Set while status is running so a
-      refresh can resume the poll; completed rows keep it for the same id. */
   requestId?: string;
   error?: string;
-  /** Layered-gradient fallback used while media loads or when a run failed. */
   art: string;
   createdAt: number;
-  /** Kept deliberately: shows in the Favorites scope and outlives the cap. */
   favorite?: boolean;
-  /** Resolved catalog settings this run was submitted with, so reuse can
-      restore the dials and not just the words. Absent on pre-existing records. */
   settings?: Record<string, unknown>;
 }
 
-export const HISTORY_KEY = "history.v1";
+export const HISTORY_KEY = "history.v2";
 export const LEGACY_HISTORY_KEY = "openhiggsfield.history.v1";
-const MAX_RECORDS = 60;
+const MAX_RECORDS = 1000;
 
 export async function loadHistory(
   kv: Kv = defaultKv(),
   legacy: LegacyStore | undefined = browserLegacy(),
 ): Promise<RunRecord[]> {
-  const stored = await readIdb(kv);
-  const fromLegacy = readLegacy(legacy);
-  if (stored.length === 0) return fromLegacy;
-  if (fromLegacy.length === 0) return stored;
-  return mergeHistory(stored, fromLegacy);
+  const [stored, server] = await Promise.all([readIdb(kv), readServerHistory()]);
+  const local = mergeHistory(server, stored);
+  return mergeHistory(local, readLegacy(legacy));
 }
 
 export async function saveHistory(
@@ -51,20 +42,17 @@ export async function saveHistory(
   legacy: LegacyStore | undefined = browserLegacy(),
 ): Promise<void> {
   const next = capHistory(records.filter(isRunRecord));
-  try {
-    await kv.set(HISTORY_KEY, next);
-  } catch {
-    /* private mode or a denied store */
-  }
+  await Promise.allSettled([
+    kv.set(HISTORY_KEY, next),
+    saveServerHistory(next),
+  ]);
   try {
     legacy?.setItem(LEGACY_HISTORY_KEY, JSON.stringify(next));
   } catch {
-    /* quota or a denied store */
+    // Browser storage is a cache; server persistence remains authoritative.
   }
 }
 
-/** Session rows win on id collision so a generate that landed before IDB
-    finished reading is not wiped by the delayed load. */
 export function mergeHistory(stored: RunRecord[], live: RunRecord[]): RunRecord[] {
   const byId = new Map<string, RunRecord>();
   for (const row of [...stored, ...live]) {
@@ -72,6 +60,32 @@ export function mergeHistory(stored: RunRecord[], live: RunRecord[]): RunRecord[
     if (!prev || newerRecord(row, prev)) byId.set(row.id, row);
   }
   return capHistory([...byId.values()].sort((a, b) => b.createdAt - a.createdAt));
+}
+
+async function readServerHistory(): Promise<RunRecord[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const response = await fetch("/api/v2/history", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) return [];
+    const payload = (await response.json()) as { history?: unknown };
+    if (!Array.isArray(payload.history)) return [];
+    return capHistory(payload.history.filter(isRunRecord));
+  } catch {
+    return [];
+  }
+}
+
+async function saveServerHistory(records: RunRecord[]): Promise<void> {
+  if (typeof window === "undefined") return;
+  const response = await fetch("/api/v2/history", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ history: records }),
+  });
+  if (!response.ok) throw new Error("Server history persistence failed");
 }
 
 async function readIdb(kv: Kv): Promise<RunRecord[]> {
@@ -97,8 +111,6 @@ function readLegacy(legacy: LegacyStore | undefined): RunRecord[] {
   }
 }
 
-/* The cap trims the run log, not the visitor's shelf: a favorite is a
-   deliberate keep, so only unmarked runs age out of the window. */
 export function capHistory(records: RunRecord[], max = MAX_RECORDS): RunRecord[] {
   if (records.length <= max) return records;
   let kept = 0;
@@ -111,8 +123,6 @@ export function requestIdOf(record: RunRecord): string {
   return record.requestId ?? record.id.split("#")[0]!;
 }
 
-/** Swap every row of a request for its terminal records, or no-op if the
-    visitor already deleted the in-flight tiles. */
 export function replaceRequest(
   records: RunRecord[],
   requestId: string,
@@ -166,9 +176,6 @@ export function timeAgo(timestamp: number, now = Date.now()): string {
   return `${days} d ago`;
 }
 
-/* One step along the runs the visitor is actually looking at, or null at the
-   ends — the walk stops there rather than wrapping, so the edge of the scope
-   can be felt. A run that has left the list steps nowhere. */
 export function stepRun(records: RunRecord[], id: string, delta: number): RunRecord | null {
   const from = records.findIndex((record) => record.id === id);
   if (from < 0) return null;
