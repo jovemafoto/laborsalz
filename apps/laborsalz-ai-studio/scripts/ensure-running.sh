@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
+export PATH="/usr/local/bin:/opt/homebrew/bin:/Applications/Docker.app/Contents/Resources/bin:$PATH"
+
 PROJECT_ROOT="${LABORSALZ_AI_PROJECT_ROOT:-/Volumes/LaborSalz-Data/03. Projects/LaborSalz AI Studio}"
 APP_DIR="$PROJECT_ROOT/03. Development/repository/apps/laborsalz-ai-studio"
 PORT="${LABORSALZ_AI_PORT:-3010}"
