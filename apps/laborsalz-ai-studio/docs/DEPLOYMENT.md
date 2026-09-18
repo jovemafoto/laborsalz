@@ -19,6 +19,10 @@ The script is additive. It creates the official project folder structure, clones
 or fast-forwards the feature branch, creates a private `.env` only when missing,
 builds the container, starts it and verifies `/api/v2/health`.
 
+The only generation credential requested by the bootstrap is the Higgsfield
+`KEY_ID:KEY_SECRET` pair. The API origin defaults to the official
+`https://platform.higgsfield.ai` endpoint and remains overrideable by environment.
+
 ## Cloudflare
 
 Do not blindly overwrite the existing tunnel configuration. Run:
@@ -40,3 +44,7 @@ Back up the project runtime directory:
 `/Volumes/LaborSalz-Data/03. Projects/LaborSalz AI Studio/04. Assets/runtime/`
 
 The Git repository is not the backup for generated media or history.
+
+Completed generation outputs are copied into `04. Assets/runtime/results`, so the
+Generation Bank does not depend only on temporary provider CDN URLs. Input uploads
+default to 95 MB maximum to leave headroom under common reverse-proxy upload limits.
