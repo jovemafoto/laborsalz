@@ -17,7 +17,7 @@ import type { StatusResult } from "./platform";
 import { toPlatform } from "./to-platform";
 import { archiveGenerationStatus } from "@/server/archive";
 import { writeStudioEvent } from "@/server/events";
-import { managedGatewayCredentials } from "@/server/gateway";
+import { generationBaseUrl, managedGatewayCredentials } from "@/server/gateway";
 
 export type CredentialMode = "managed" | "cookie" | "missing";
 
@@ -99,15 +99,9 @@ async function readCredentials() {
   const managed = managedGatewayCredentials();
   if (managed) return managed;
 
-  if (process.env.LABORSALZ_AI_API_KEY?.trim()) {
-    throw new Error("Managed platform key is set but HF_API_BASE_URL is missing or invalid");
-  }
-
   const stored = await readStoredCredentials();
   if (!stored) throw new MissingCredentialsError();
-  const baseUrl = process.env.HF_API_BASE_URL?.trim();
-  if (!baseUrl) throw new Error("Missing HF_API_BASE_URL");
-  return { ...stored, baseUrl };
+  return { ...stored, baseUrl: generationBaseUrl() };
 }
 
 function parseRequestIds(data: unknown): string[] {
