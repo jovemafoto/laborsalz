@@ -76,11 +76,12 @@ cd "$APP_DIR"
 
 if [[ ! -f .env ]]; then
   echo
-  read -r -p "Generation API base URL (HF_API_BASE_URL): " HF_API_BASE_URL </dev/tty
-  read -r -s -p "Generation platform key (id:secret): " LABORSALZ_AI_API_KEY </dev/tty
+  HF_API_BASE_URL="https://platform.higgsfield.ai"
+  echo "Generation API: $HF_API_BASE_URL"
+  read -r -s -p "Higgsfield platform key (KEY_ID:KEY_SECRET): " LABORSALZ_AI_API_KEY </dev/tty
   echo
-  if [[ -z "$HF_API_BASE_URL" || -z "$LABORSALZ_AI_API_KEY" ]]; then
-    echo "ERROR: API URL and key are required to start generation."
+  if [[ -z "$LABORSALZ_AI_API_KEY" || "$LABORSALZ_AI_API_KEY" != *:* ]]; then
+    echo "ERROR: a Higgsfield KEY_ID:KEY_SECRET pair is required."
     exit 3
   fi
 
