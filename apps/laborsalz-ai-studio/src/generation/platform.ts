@@ -52,7 +52,9 @@ export function createPlatformClient(options: PlatformClientOptions) {
 
   async function send(method: "GET" | "POST", path: string, body?: Record<string, unknown>) {
     const url = `${baseUrl}${path}`;
-    console.info("[platform] request", { method, url, body: body ?? null });
+    if (process.env.LABORSALZ_AI_DEBUG === "1") {
+      console.info("[platform] request", { method, url, hasBody: Boolean(body) });
+    }
     const response = await fetchImpl(url, {
       method,
       headers: {
@@ -63,7 +65,9 @@ export function createPlatformClient(options: PlatformClientOptions) {
     });
 
     const payload = await readJson(response);
-    console.info("[platform] response", { method, url, status: response.status, body: payload });
+    if (process.env.LABORSALZ_AI_DEBUG === "1") {
+      console.info("[platform] response", { method, url, status: response.status });
+    }
     if (!response.ok) throw new PlatformError(response.status, payload);
     return payload;
   }
