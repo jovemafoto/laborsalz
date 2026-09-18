@@ -1,4 +1,4 @@
-export const DEVICE_COOKIE = "ohf_device";
+export const DEVICE_COOKIE = "laborsalz_ai_device";
 
 export const DEVICE_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -32,7 +32,7 @@ export function blobPathname(deviceId: string, filename: string): string {
   return `${id}/${sanitizeFilename(filename)}`;
 }
 
-function sanitizeFilename(filename: string): string {
+export function sanitizeFilename(filename: string): string {
   const base = filename.replaceAll("\\", "/").split("/").pop() ?? "";
   const cleaned = base.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^\.+/, "");
   return cleaned.slice(0, 180) || "file";
