@@ -2,13 +2,19 @@ import { timingSafeEqual } from "node:crypto";
 
 import { parseCredentialInput } from "@/generation/credentials";
 
+export const DEFAULT_HF_API_BASE_URL = "https://platform.higgsfield.ai";
+
+export function generationBaseUrl(): string {
+  return process.env.HF_API_BASE_URL?.trim() || DEFAULT_HF_API_BASE_URL;
+}
+
 export function managedGatewayCredentials(): {
   apiKey: string;
   baseUrl: string;
 } | null {
   const rawKey = process.env.LABORSALZ_AI_API_KEY?.trim();
-  const baseUrl = process.env.HF_API_BASE_URL?.trim();
-  if (!rawKey || !baseUrl) return null;
+  const baseUrl = generationBaseUrl();
+  if (!rawKey) return null;
   const { apiKey } = parseCredentialInput({ apiKey: rawKey });
   return { apiKey, baseUrl };
 }
