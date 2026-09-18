@@ -44,6 +44,7 @@ providers through expiring HMAC-signed `/api/v2/media/*` URLs.
 ## Persistence
 
 - uploads: `/data/uploads/<device>/`
+- results: `/data/results/<request-id>/`
 - history: `/data/history/<device>.json`
 - events: `/data/events/YYYY-MM-DD.ndjson`
 
@@ -57,12 +58,13 @@ without changing the public API v2 contract.
   `LABORSALZ_AI_API_KEY` is set.
 - Internal API: Bearer token via `LABORSALZ_INTERNAL_API_TOKEN`.
 - Browser surface: Cloudflare Access.
-- Provider-readable media: signed expiring URLs. Only `/api/v2/media/*`
+- Provider-readable input media: signed expiring URLs. Only `/api/v2/media/*`
   should bypass interactive Access.
+- Archived outputs under `/api/v2/results/*` stay behind Cloudflare Access.
 - Repository: no secrets, generated media or client-private assets.
 
 ## Recovery
 
 Docker uses `restart: unless-stopped`. Runtime state lives on
 `/Volumes/LaborSalz-Data`, outside the container, so replacing/rebuilding the
-container does not delete history or uploads.
+container does not delete history, uploads or archived results.
