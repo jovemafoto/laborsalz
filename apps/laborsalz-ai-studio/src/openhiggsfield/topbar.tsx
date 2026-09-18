@@ -126,6 +126,12 @@ export function Topbar({
           whether one is held and opens the modal that sets it — and its lamp is
           the studio's liveness, the one place accent moves. */}
       <div className="ohf-bar ohf-enter-1">
+        <a className="ohf-key" href="/generations" aria-label="Generation bank" title="Generation bank">
+          <span className="ohf-key-text">Runs</span>
+        </a>
+        <a className="ohf-key" href="/stats" aria-label="Studio statistics" title="Studio statistics">
+          <span className="ohf-key-text">Stats</span>
+        </a>
         <button
           type="button"
           className="ohf-key"
