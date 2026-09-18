@@ -3,6 +3,7 @@ import { constants } from "node:fs";
 
 import { NextResponse } from "next/server";
 
+import { generationBaseUrl } from "@/server/gateway";
 import { storagePath, storageRoot } from "@/server/storage";
 
 export const runtime = "nodejs";
@@ -17,11 +18,10 @@ export async function GET() {
       service: "LaborSalz AI Studio",
       version: 2,
       storage: "ready",
-      generationGateway:
-        Boolean(process.env.HF_API_BASE_URL?.trim()) &&
-        Boolean(process.env.LABORSALZ_AI_API_KEY?.trim())
-          ? "configured"
-          : "pending",
+      generationGateway: Boolean(process.env.LABORSALZ_AI_API_KEY?.trim())
+        ? "configured"
+        : "pending",
+      generationApi: generationBaseUrl(),
       at: new Date().toISOString(),
     });
   } catch (caught) {
