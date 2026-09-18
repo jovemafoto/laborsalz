@@ -63,7 +63,15 @@ export default async function GenerationsPage() {
                 <td style={{ padding: "12px 8px", whiteSpace: "nowrap" }}>
                   {row.createdAt ? new Date(row.createdAt).toLocaleString("pt-BR") : "—"}
                 </td>
-                <td style={{ padding: "12px 8px" }}>{row.modelLabel ?? row.modelId ?? "—"}</td>
+                <td style={{ padding: "12px 8px" }}>
+                  {row.id ?? row.requestId ? (
+                    <Link href={`/generations/${encodeURIComponent(row.id ?? row.requestId ?? "")}`}>
+                      {row.modelLabel ?? row.modelId ?? "Open generation"}
+                    </Link>
+                  ) : (
+                    row.modelLabel ?? row.modelId ?? "—"
+                  )}
+                </td>
                 <td style={{ padding: "12px 8px" }}>{row.surface ?? "—"}</td>
                 <td style={{ padding: "12px 8px" }}>{row.status ?? "—"}</td>
                 <td style={{ padding: "12px 8px", maxWidth: 560 }}>{row.prompt ?? "—"}</td>
