@@ -15,6 +15,7 @@ import {
 import { createPlatformClient } from "./platform";
 import type { StatusResult } from "./platform";
 import { toPlatform } from "./to-platform";
+import { archiveGenerationStatus } from "@/server/archive";
 import { writeStudioEvent } from "@/server/events";
 import { managedGatewayCredentials } from "@/server/gateway";
 
@@ -69,7 +70,8 @@ export async function getGenerationStatuses(data: unknown): Promise<StatusResult
   return Promise.all(
     requestIds.map(async (requestId): Promise<StatusResult> => {
       try {
-        const status = await client.status(requestId);
+        const providerStatus = await client.status(requestId);
+        const status = await archiveGenerationStatus(providerStatus);
         if (["completed", "failed", "nsfw", "canceled"].includes(status.status)) {
           await writeStudioEvent(
             status.status === "completed" ? "generation.completed" : "generation.failed",
