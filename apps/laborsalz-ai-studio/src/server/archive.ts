@@ -80,6 +80,7 @@ async function archiveRemoteAsset(
 
     const encoded = relative
       .split("/")
+      .slice(1)
       .map((segment) => encodeURIComponent(segment))
       .join("/");
     return `${SITE_URL}/api/v2/results/${encoded}`;
