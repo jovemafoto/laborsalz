@@ -47,6 +47,7 @@ export async function POST(request: Request) {
     const resolved = resolveDeviceId(jar.get(DEVICE_COOKIE)?.value);
     const filename = `${crypto.randomUUID()}-${sanitizeFilename(file.name)}`;
     const relativePath = path.posix.join("uploads", resolved.deviceId, filename);
+    const signedUrl = createSignedMediaUrl(relativePath);
     const fullPath = storagePath(...relativePath.split("/"));
     await mkdir(path.dirname(fullPath), { recursive: true });
     await writeFile(fullPath, Buffer.from(await file.arrayBuffer()));
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
     });
 
     const response = NextResponse.json({
-      url: createSignedMediaUrl(relativePath),
+      url: signedUrl,
       path: relativePath,
       bytes: file.size,
       type: file.type,
