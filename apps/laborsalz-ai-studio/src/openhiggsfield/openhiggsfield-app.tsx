@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { hasPlatformCredentials, submitGeneration } from "@/generation/actions";
+import { platformCredentialMode, submitGeneration } from "@/generation/actions";
 import { MissingCredentialsError } from "@/generation/credentials";
 import { MODELS, getModel } from "@/generation/catalog";
 import type { Surface } from "@/generation/catalog";
@@ -180,6 +180,7 @@ export function OpenHiggsfieldApp({ fontClassName = "" }: { fontClassName?: stri
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState<SaveProgress | null>(null);
   const [keyConfigured, setKeyConfigured] = useState(false);
+  const [keyManaged, setKeyManaged] = useState(false);
   const [keysOpen, setKeysOpen] = useState(false);
 
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -221,8 +222,10 @@ export function OpenHiggsfieldApp({ fontClassName = "" }: { fontClassName?: stri
   }, [historyLoaded, history]);
 
   useEffect(() => {
-    void hasPlatformCredentials().then((ready) => {
+    void platformCredentialMode().then((mode) => {
+      const ready = mode !== "missing";
       setKeyConfigured(ready);
+      setKeyManaged(mode === "managed");
       if (!ready) setKeysOpen(true);
     });
   }, []);
@@ -596,7 +599,9 @@ export function OpenHiggsfieldApp({ fontClassName = "" }: { fontClassName?: stri
   );
 
   const openViewer = useCallback((id: string) => setViewerId(id), []);
-  const openKeys = useCallback(() => setKeysOpen(true), []);
+  const openKeys = useCallback(() => {
+    if (!keyManaged) setKeysOpen(true);
+  }, [keyManaged]);
   const runGenerate = useCallback(() => void generate(), [generate]);
   const downloadSelection = useCallback(() => void downloadPicked(), [downloadPicked]);
   const dismissDeleted = useCallback(() => setDeleted(null), []);
@@ -629,6 +634,7 @@ export function OpenHiggsfieldApp({ fontClassName = "" }: { fontClassName?: stri
             onView={switchView}
             busy={busy}
             keyConfigured={keyConfigured}
+            managedKey={keyManaged}
             onKeys={openKeys}
           />
 
@@ -697,7 +703,7 @@ export function OpenHiggsfieldApp({ fontClassName = "" }: { fontClassName?: stri
             }}
           />
         )}
-        {keysOpen && (
+        {keysOpen && !keyManaged && (
           <KeyModal
             configured={keyConfigured}
             onClose={() => setKeysOpen(false)}
