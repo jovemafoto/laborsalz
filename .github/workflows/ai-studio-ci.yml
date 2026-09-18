@@ -1,0 +1,34 @@
+name: AI Studio CI
+
+on:
+  push:
+    branches:
+      - feature/laborsalz-ai-studio
+    paths:
+      - "apps/laborsalz-ai-studio/**"
+      - ".github/workflows/ai-studio-ci.yml"
+  pull_request:
+    paths:
+      - "apps/laborsalz-ai-studio/**"
+      - ".github/workflows/ai-studio-ci.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/laborsalz-ai-studio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://ai.laborsalz.com
+          NEXT_PUBLIC_STUDIO_NAME: LaborSalz AI Studio
+        run: pnpm build
