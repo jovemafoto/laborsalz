@@ -1,0 +1,7 @@
+# Add this BEFORE the final catch-all ingress rule of the chosen LaborSalz tunnel.
+# Verify the live tunnel and config path first with scripts/server-preflight.sh.
+- hostname: ai.laborsalz.com
+  service: http://localhost:3010
+  originRequest:
+    connectTimeout: 10s
+    noHappyEyeballs: false
