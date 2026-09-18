@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createPlatformClient } from "@/generation/platform";
+import { archiveGenerationStatus } from "@/server/archive";
 import { writeStudioEvent } from "@/server/events";
 import { managedGatewayCredentials, requireInternalApiToken } from "@/server/gateway";
 
@@ -16,7 +17,8 @@ export async function GET(
     if (!requestId) throw new Error("requestId is required");
     const credentials = managedGatewayCredentials();
     if (!credentials) throw new Error("Generation gateway is not configured");
-    const status = await createPlatformClient(credentials).status(requestId);
+    const providerStatus = await createPlatformClient(credentials).status(requestId);
+    const status = await archiveGenerationStatus(providerStatus);
     if (["completed", "failed", "nsfw", "canceled"].includes(status.status)) {
       await writeStudioEvent(
         status.status === "completed" ? "generation.completed" : "generation.failed",
